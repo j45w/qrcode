@@ -15,7 +15,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // Serve static files
-app.use(express.static(path.join(__dirname, "frontend")));
+app.use(express.static(path.join(__dirname, "/frontend")));
 
 // MongoDB connection
 mongoose

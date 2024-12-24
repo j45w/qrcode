@@ -10,13 +10,10 @@ const idContainer = document.getElementById("id-container");
 let scanning = false;
 let codeReader;
 
-// Backend base URL
-const BASE_URL = "https://qrcode-n318.onrender.com"; // Your Render backend URL
-
 // Function to validate and delete user by QR code or manual ID
 async function validateAndDeleteQRCode(uniqueId) {
     try {
-        const response = await fetch(`${BASE_URL}/api/users/validate-and-delete`, {
+        const response = await fetch("http://localhost:5000/api/users/validate-and-delete", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ uniqueId }),
