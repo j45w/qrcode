@@ -36,15 +36,16 @@ async function validateAndDeleteQRCode(uniqueId) {
 
 // Start camera and scanning
 function startScanning() {
-    codeReader = new ZXing.BrowserQRCodeReader();
+    codeReader = new ZXing.BrowserMultiFormatReader();
     codeReader
-        .decodeFromVideoDevice(null, video, async (result, err) => {
+        .decodeFromVideoDevice(null, video, (result, err) => {
             if (result) {
                 const scannedData = result.text;
                 try {
                     const parsedData = JSON.parse(scannedData);
                     validateAndDeleteQRCode(parsedData.uniqueId);
                 } catch (error) {
+                    console.error("Invalid QR Code format:", error);
                     result.textContent = "Invalid QR Code format.";
                     result.className = "error fade-in";
                 }
@@ -87,14 +88,14 @@ function initializeCamera() {
     navigator.mediaDevices
         .getUserMedia({
             video: {
-                facingMode: { ideal: "environment" }, // Rear-facing camera for mobile
+                facingMode: { ideal: "environment" },
                 width: { ideal: 1280 },
                 height: { ideal: 720 },
             },
         })
         .then(function (stream) {
             video.srcObject = stream;
-            video.setAttribute("playsinline", true); // Required for iOS Safari
+            video.setAttribute("playsinline", true);
             video.play();
             startScanning();
         })
@@ -138,3 +139,4 @@ tabs.forEach((tab) => {
 
 // Automatically start the camera on page load
 initializeCamera();
+
