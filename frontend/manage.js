@@ -13,7 +13,7 @@ let codeReader;
 // Function to validate and delete user by QR code or manual ID
 async function validateAndDeleteQRCode(uniqueId) {
     try {
-        const response = await fetch("http://localhost:5000/api/users/validate-and-delete", {
+        const response = await fetch("https://qrcode-n318.onrender.com/api/users/validate-and-delete", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ uniqueId }),

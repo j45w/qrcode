@@ -16,7 +16,7 @@ document.getElementById("createForm").addEventListener("submit", async function 
 
     try {
         // Call backend API to create user
-        const response = await fetch("http://localhost:5000/api/users/create", {
+        const response = await fetch("https://qrcode-n318.onrender.com/api/users/create", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name }),
@@ -43,7 +43,7 @@ document.getElementById("retrieveForm").addEventListener("submit", async functio
 
     try {
         // Call backend API to retrieve user data by unique ID
-        const response = await fetch("http://localhost:5000/api/users/retrieve", {
+        const response = await fetch("https://qrcode-n318.onrender.com/api/users/retrieve", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ uniqueId }),
