@@ -26,8 +26,8 @@ mongoose
 app.use("/api/users", userRoutes);
 
 // Root route
-app.get("/frontend/manage.html", (req, res) => {
-  res.send("Welcome to the QR Code App Backend!");
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/frontend/manage.html");
 });
 
 // Start the server
