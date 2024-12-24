@@ -21,18 +21,24 @@ async function validateAndDeleteQRCode(uniqueId) {
 
         const data = await response.json();
 
+        const resultDiv = document.getElementById("result");
+        resultDiv.classList.remove("hidden"); // Make result visible
+
         if (response.ok) {
-            result.textContent = `Success! ${data.message}`;
-            result.className = "success fade-in";
+            resultDiv.textContent = `Success! ${data.message}`;
+            resultDiv.className = "success fade-in"; // Apply success styling
         } else {
-            result.textContent = data.error || "Validation failed";
-            result.className = "error fade-in";
+            resultDiv.textContent = data.error || "Validation failed";
+            resultDiv.className = "error fade-in"; // Apply error styling
         }
     } catch (err) {
-        result.textContent = "Failed to connect to the server.";
-        result.className = "error fade-in";
+        const resultDiv = document.getElementById("result");
+        resultDiv.classList.remove("hidden");
+        resultDiv.textContent = "Failed to connect to the server.";
+        resultDiv.className = "error fade-in"; // Apply error styling
     }
 }
+
 
 // Start camera and scanning
 function startScanning() {

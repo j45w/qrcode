@@ -56,7 +56,7 @@ document.getElementById("retrieveForm").addEventListener("submit", async functio
             generateQRCode(data.qrCodeData);
             document.getElementById("result").innerHTML = `<p>QR Code retrieved successfully!</p>`;
         } else {
-            document.getElementById("result").innerHTML = `<p>Error: ${data.error}</p>`;
+            document.getElementById("result").innerHTML = `<p>${data.error}, Create one</p>`;
         }
     } catch (err) {
         document.getElementById("result").innerHTML = `<p>Failed to connect to the server.</p>`;

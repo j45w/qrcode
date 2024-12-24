@@ -124,7 +124,18 @@
     font-size: 1.1rem;
     transition: all 0.3s ease;
     color: var(--text-secondary);
-  }
+}
+
+#result.success {
+    background-color: #d1fae5; /* Light green */
+    color: #065f46; /* Dark green */
+}
+
+#result.error {
+    background-color: #fee2e2; /* Light red */
+    color: #991b1b; /* Dark red */
+}
+
   
   #qr-video {
     width: 100%;

@@ -3,29 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code and ID Checker - Manager Page</title>
+    <title>Manage Page</title>
     <link rel="stylesheet" href="manage.css">
-    <script src="https://unpkg.com/@zxing/library@latest"></script>
-    <script src="manage.js" defer></script>
 </head>
 <body>
     <div class="container">
         <h1>QR Code and ID Checker</h1>
         <div class="tabs">
             <div class="tab active" data-tab="scan">Scan QR</div>
-            <div class="tab" data-tab="id">Check ID</div>
+            <div class="tab" data-tab="manual">Check ID</div>
         </div>
         <div id="scan-container">
-            <video id="qr-video" playsinline></video>
-            <button id="toggle-scan">Stop Scanning</button>
+            <video id="qr-video"></video>
+            <button id="toggle-scan">Start Scanning</button>
         </div>
         <div id="id-container" class="hidden">
             <form id="id-form">
-                <input type="text" id="id-input" placeholder="Enter ID" required>
+                <input id="id-input" type="text" placeholder="Enter ID" required />
                 <button type="submit">Check ID</button>
             </form>
         </div>
-        <div id="result" class="fade-in"></div>
+        <div id="result" class="hidden"></div>
     </div>
+    <script src="manage.js"></script>
 </body>
 </html>
