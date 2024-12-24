@@ -9,6 +9,9 @@ function generateQRCode(data) {
     });
 }
 
+// Base URL for the backend
+const BASE_URL = "https://qrcode-n318.onrender.com"; // Your Render backend URL
+
 // Create QR Code
 document.getElementById("createForm").addEventListener("submit", async function (e) {
     e.preventDefault();
@@ -16,7 +19,7 @@ document.getElementById("createForm").addEventListener("submit", async function 
 
     try {
         // Call backend API to create user
-        const response = await fetch("http://localhost:5000/api/users/create", {
+        const response = await fetch(`${BASE_URL}/api/users/create`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name }),
@@ -43,7 +46,7 @@ document.getElementById("retrieveForm").addEventListener("submit", async functio
 
     try {
         // Call backend API to retrieve user data by unique ID
-        const response = await fetch("http://localhost:5000/api/users/retrieve", {
+        const response = await fetch(`${BASE_URL}/api/users/retrieve`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ uniqueId }),
