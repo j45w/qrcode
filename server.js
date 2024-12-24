@@ -4,7 +4,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 require("dotenv").config();
 
-const userRoutes = require("./backend/routes/userRoutes");
+const userRoutes = require("./routes/userRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -26,7 +26,7 @@ mongoose
 app.use("/api/users", userRoutes);
 
 // Root route
-app.get("../frontend/manage.html", (req, res) => {
+app.get("/", (req, res) => {
   res.send("Welcome to the QR Code App Backend!");
 });
 
