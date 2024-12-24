@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 const path = require("path");
 
-const userRoutes = require("./routes/userRoutes");
+const userRoutes = require("./backend/routes/userRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -14,8 +14,8 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// Serve static files (CSS, JS, etc.)
-app.use(express.static(path.join(__dirname, "../frontend")));
+// Serve static files
+app.use(express.static(path.join(__dirname, "/frontend")));
 
 // MongoDB connection
 mongoose
@@ -29,9 +29,9 @@ mongoose
 // API Routes
 app.use("/api/users", userRoutes);
 
-// Root route (Load manage.html when visiting root)
+// Root route
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/manage.html"));
+  res.sendFile(path.join(__dirname, "/frontend/manage.html"));
 });
 
 // Start the server
