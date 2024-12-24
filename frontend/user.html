@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <link rel="stylesheet" href="user.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+    <script src="user.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <h1>QR Code Generator</h1>
+        <div class="tabs">
+            <div class="tab active" data-tab="create">Create</div>
+            <div class="tab" data-tab="retrieve">Retrieve</div>
+        </div>
+        <form id="createForm">
+            <input type="text" id="name" placeholder="Enter your name" required>
+            <button type="submit">Generate QR Code</button>
+        </form>
+        <form id="retrieveForm" class="hidden">
+            <input type="text" id="id" placeholder="Enter your unique ID" required>
+            <button type="submit">Retrieve QR Code</button>
+        </form>
+        <div id="result"></div>
+        <div id="qrcode"></div>
+    </div>
+</body>
+</html>
