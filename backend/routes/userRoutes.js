@@ -3,26 +3,26 @@ const User = require("../models/User");
 
 const router = express.Router();
 
-// Helper function to generate unique IDs
-function generateUniqueId() {
-  return Math.random().toString(36).substr(2, 9);
-}
-
 // Create a new user and generate QR code data
 router.post("/create", async (req, res) => {
   const { name } = req.body;
 
   if (!name) return res.status(400).json({ error: "Name is required" });
 
-  const uniqueId = generateUniqueId();
-  const qrCodeData = JSON.stringify({ name, uniqueId });
-
-  const user = new User({ name, uniqueId, qrCodeData });
-
   try {
+    // Find the highest uniqueId and increment it
+    const lastUser = await User.findOne().sort({ uniqueId: -1 });
+    const uniqueId = lastUser ? lastUser.uniqueId + 1 : 1;
+
+    const qrCodeData = JSON.stringify({ name, uniqueId });
+
+    // Create new user
+    const user = new User({ name, uniqueId, qrCodeData });
     await user.save();
+
     res.status(201).json({ uniqueId, qrCodeData });
   } catch (err) {
+    console.error("Error creating user:", err);
     res.status(500).json({ error: "Failed to create user" });
   }
 });
@@ -40,6 +40,7 @@ router.post("/retrieve", async (req, res) => {
 
     res.status(200).json({ qrCodeData: user.qrCodeData });
   } catch (err) {
+    console.error("Error retrieving user:", err);
     res.status(500).json({ error: "Failed to retrieve user" });
   }
 });
@@ -56,8 +57,9 @@ router.post("/validate-and-delete", async (req, res) => {
 
     if (!user) return res.status(404).json({ error: "User not found or already scanned" });
 
-    res.status(200).json({ message: `Welcome ${user.name} you are allow to enter` });
+    res.status(200).json({ message: `Welcome ${user.name}, you are allowed to enter.` });
   } catch (err) {
+    console.error("Error validating user:", err);
     res.status(500).json({ error: "Failed to validate user" });
   }
 });

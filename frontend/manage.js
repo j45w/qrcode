@@ -39,11 +39,25 @@ async function validateAndDeleteQRCode(uniqueId) {
 
 // Start camera and scanning
 function startScanning() {
+    if (codeReader) {
+        codeReader.reset();
+    }
     codeReader = new ZXing.BrowserQRCodeReader();
-    codeReader.decodeFromVideoDevice(null, "qr-video", async (result, err) => {
+    codeReader.decodeFromVideoDevice(null, video.id, async (result, err) => {
         if (result) {
-            const scannedData = result.text;
-            validateAndDeleteQRCode(JSON.parse(scannedData).uniqueId);
+            try {
+                const scannedData = JSON.parse(result.text);
+                if (scannedData.uniqueId) {
+                    await validateAndDeleteQRCode(scannedData.uniqueId);
+                } else {
+                    result.textContent = "Invalid QR Code format.";
+                    result.className = "error fade-in";
+                }
+            } catch (e) {
+                console.error("Error processing QR Code:", e);
+                result.textContent = "Invalid QR Code.";
+                result.className = "error fade-in";
+            }
         }
         if (err && !(err instanceof ZXing.NotFoundException)) {
             console.error(err);
@@ -79,8 +93,8 @@ function initializeCamera() {
             video: {
                 facingMode: { ideal: "environment" }, // Rear-facing camera for mobile
                 width: { ideal: 1280 },
-                height: { ideal: 720 }
-            }
+                height: { ideal: 720 },
+            },
         })
         .then(function (stream) {
             video.srcObject = stream;
