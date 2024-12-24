@@ -36,33 +36,32 @@ async function validateAndDeleteQRCode(uniqueId) {
 
 // Start camera and scanning
 function startScanning() {
-    if (codeReader) {
-        codeReader.reset();
-    }
     codeReader = new ZXing.BrowserQRCodeReader();
-    codeReader.decodeFromVideoDevice(null, video.id, async (result, err) => {
-        if (result) {
-            try {
-                const scannedData = JSON.parse(result.text);
-                if (scannedData.uniqueId) {
-                    await validateAndDeleteQRCode(scannedData.uniqueId);
-                } else {
+    codeReader
+        .decodeFromVideoDevice(null, video, async (result, err) => {
+            if (result) {
+                const scannedData = result.text;
+                try {
+                    const parsedData = JSON.parse(scannedData);
+                    validateAndDeleteQRCode(parsedData.uniqueId);
+                } catch (error) {
                     result.textContent = "Invalid QR Code format.";
                     result.className = "error fade-in";
                 }
-            } catch (e) {
-                console.error("Error processing QR Code:", e);
-                result.textContent = "Invalid QR Code.";
-                result.className = "error fade-in";
             }
-        }
-        if (err && !(err instanceof ZXing.NotFoundException)) {
-            console.error(err);
-        }
-    }).then(() => {
-        scanning = true;
-        toggleScanButton.textContent = "Stop Scanning";
-    });
+            if (err && !(err instanceof ZXing.NotFoundException)) {
+                console.error("QR Code scanning error:", err);
+            }
+        })
+        .then(() => {
+            scanning = true;
+            toggleScanButton.textContent = "Stop Scanning";
+        })
+        .catch((err) => {
+            console.error("Error initializing QR code scanning:", err);
+            result.textContent = "Unable to initialize QR scanning.";
+            result.className = "error fade-in";
+        });
 }
 
 // Stop scanning and reset the camera
