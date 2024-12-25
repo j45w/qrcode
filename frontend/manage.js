@@ -23,45 +23,63 @@ async function validateAndDeleteQRCode(uniqueId) {
 
         if (response.ok) {
             result.textContent = `Success! ${data.message}`;
+            result.style.color = "green"; // Display success in green
             result.className = "success fade-in";
         } else {
             result.textContent = data.error || "Validation failed";
+            result.style.color = "red"; // Display errors in red
             result.className = "error fade-in";
         }
     } catch (err) {
         result.textContent = "Failed to connect to the server.";
+        result.style.color = "red";
         result.className = "error fade-in";
     }
 }
 
 // Start camera and scanning
-function startScanning() {
-    codeReader = new ZXing.BrowserQRCodeReader();
-    codeReader
-        .decodeFromVideoDevice(null, video, async (scanResult, err) => {
-            if (scanResult) {
-                const scannedData = scanResult.text;
+async function startScanning() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        result.textContent = "Camera not supported on this device.";
+        result.style.color = "red";
+        return;
+    }
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: "environment", // Rear camera
+            },
+        });
+
+        video.srcObject = stream;
+        video.setAttribute("playsinline", true); // For mobile devices
+        video.play();
+
+        codeReader = new ZXing.BrowserQRCodeReader();
+        codeReader.decodeFromVideoDevice(null, video, (result, err) => {
+            if (result) {
+                const scannedData = result.text;
                 try {
                     const parsedData = JSON.parse(scannedData);
                     validateAndDeleteQRCode(parsedData.uniqueId);
                 } catch (error) {
                     result.textContent = "Invalid QR Code format.";
-                    result.className = "error fade-in";
+                    result.style.color = "red";
                 }
             }
             if (err && !(err instanceof ZXing.NotFoundException)) {
                 console.error("QR Code scanning error:", err);
             }
-        })
-        .then(() => {
-            scanning = true;
-            toggleScanButton.textContent = "Stop Scanning";
-        })
-        .catch((err) => {
-            console.error("Error initializing QR code scanning:", err);
-            result.textContent = "Unable to initialize QR scanning.";
-            result.className = "error fade-in";
         });
+
+        scanning = true;
+        toggleScanButton.textContent = "Stop Scanning";
+    } catch (err) {
+        console.error("Error accessing camera:", err);
+        result.textContent = "Unable to access camera. Please check your permissions.";
+        result.style.color = "red";
+    }
 }
 
 // Stop scanning and reset the camera
@@ -71,6 +89,10 @@ function stopScanning() {
         scanning = false;
         toggleScanButton.textContent = "Start Scanning";
     }
+
+    if (video.srcObject) {
+        video.srcObject.getTracks().forEach((track) => track.stop());
+    }
 }
 
 // Toggle scanning on button click
@@ -78,32 +100,9 @@ toggleScanButton.addEventListener("click", () => {
     if (scanning) {
         stopScanning();
     } else {
-        initializeCamera();
+        startScanning();
     }
 });
-
-// Initialize the camera for scanning
-function initializeCamera() {
-    navigator.mediaDevices
-        .getUserMedia({
-            video: {
-                facingMode: { ideal: "environment" }, // Rear-facing camera for mobile
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
-            },
-        })
-        .then(function (stream) {
-            video.srcObject = stream;
-            video.setAttribute("playsinline", true); // Required for iOS Safari
-            video.play();
-            startScanning();
-        })
-        .catch(function (err) {
-            console.error("Camera access denied:", err);
-            result.textContent = "Unable to access camera. Please check your permissions.";
-            result.className = "error fade-in";
-        });
-}
 
 // Validate manually entered ID
 idForm.addEventListener("submit", async (e) => {
@@ -124,7 +123,7 @@ tabs.forEach((tab) => {
         if (tab.dataset.tab === "scan") {
             scanContainer.classList.remove("hidden");
             idContainer.classList.add("hidden");
-            initializeCamera();
+            startScanning();
         } else {
             scanContainer.classList.add("hidden");
             idContainer.classList.remove("hidden");
@@ -132,9 +131,8 @@ tabs.forEach((tab) => {
         }
 
         result.textContent = "";
-        result.className = "";
     });
 });
 
-// Automatically start the camera on page load
-initializeCamera();
+// Automatically start the camera on the Scan tab
+startScanning();
