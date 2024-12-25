@@ -1,5 +1,5 @@
 const video = document.getElementById("qr-video");
-const toggleScanButton = document.getElementById("toggle-scan");
+const canvas = document.createElement("canvas");
 const result = document.getElementById("result");
 const idForm = document.getElementById("id-form");
 const idInput = document.getElementById("id-input");
@@ -7,7 +7,6 @@ const tabs = document.querySelectorAll(".tab");
 const scanContainer = document.getElementById("scan-container");
 const idContainer = document.getElementById("id-container");
 
-let scanning = false;
 let stream;
 
 // Function to validate and delete user by QR code or manual ID
@@ -34,8 +33,8 @@ async function validateAndDeleteQRCode(uniqueId) {
     }
 }
 
-// Function to start scanning
-async function startScanning() {
+// Function to start the camera
+async function startCamera() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         result.textContent = "Camera not supported on this device.";
         result.style.color = "red";
@@ -44,34 +43,13 @@ async function startScanning() {
 
     try {
         stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: { ideal: "environment" }, // Rear camera for mobile
-            },
+            video: { facingMode: { ideal: "environment" } },
         });
-
         video.srcObject = stream;
         video.setAttribute("playsinline", true); // Required for iOS Safari
         video.play();
-
-        const codeReader = new ZXing.BrowserQRCodeReader();
-        codeReader.decodeFromVideoDevice(null, video, (result, err) => {
-            if (result) {
-                const scannedData = result.text;
-                try {
-                    const parsedData = JSON.parse(scannedData);
-                    validateAndDeleteQRCode(parsedData.uniqueId);
-                } catch (error) {
-                    result.textContent = "Invalid QR Code format.";
-                    result.style.color = "red";
-                }
-            }
-            if (err && !(err instanceof ZXing.NotFoundException)) {
-                console.error("QR Code scanning error:", err);
-            }
-        });
-
-        scanning = true;
-        toggleScanButton.textContent = "Stop Scanning";
+        result.textContent = "Camera started. Use 'Check QR' to validate.";
+        result.style.color = "blue";
     } catch (err) {
         console.error("Error accessing camera:", err);
         result.textContent = "Unable to access camera. Please check your permissions.";
@@ -79,23 +57,53 @@ async function startScanning() {
     }
 }
 
-// Function to stop scanning
-function stopScanning() {
+// Function to stop the camera
+function stopCamera() {
     if (stream) {
         stream.getTracks().forEach((track) => track.stop());
     }
-    scanning = false;
-    toggleScanButton.textContent = "Start Scanning";
+    video.srcObject = null;
 }
 
-// Event listener for toggling scan
-toggleScanButton.addEventListener("click", () => {
-    if (scanning) {
-        stopScanning();
-    } else {
-        startScanning();
+// Function to capture and scan QR code
+async function captureAndScanQRCode() {
+    if (!video.srcObject) {
+        result.textContent = "Camera is not active. Please start the camera.";
+        result.style.color = "red";
+        return;
     }
-});
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const context = canvas.getContext("2d");
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    try {
+        const codeReader = new ZXing.BrowserQRCodeReader();
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+        const resultData = await codeReader.decodeFromImageData(imageData);
+
+        if (resultData) {
+            const scannedData = resultData.text;
+            try {
+                const parsedData = JSON.parse(scannedData);
+                validateAndDeleteQRCode(parsedData.uniqueId);
+            } catch (error) {
+                result.textContent = "Invalid QR Code format.";
+                result.style.color = "red";
+            }
+        }
+    } catch (err) {
+        console.error("Error scanning QR code:", err);
+        result.textContent = "No QR code detected.";
+        result.style.color = "red";
+    }
+}
+
+// Event listener for capturing and scanning QR code
+document.getElementById("capture-scan").addEventListener("click", captureAndScanQRCode);
 
 // Validate manually entered ID
 idForm.addEventListener("submit", async (e) => {
@@ -107,7 +115,7 @@ idForm.addEventListener("submit", async (e) => {
     }
 });
 
-// Handle tab switching between Scan and Manual ID
+// Handle tab switching
 tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
         tabs.forEach((t) => t.classList.remove("active"));
@@ -116,11 +124,11 @@ tabs.forEach((tab) => {
         if (tab.dataset.tab === "scan") {
             scanContainer.classList.remove("hidden");
             idContainer.classList.add("hidden");
-            startScanning();
+            startCamera();
         } else {
             scanContainer.classList.add("hidden");
             idContainer.classList.remove("hidden");
-            stopScanning();
+            stopCamera();
         }
 
         result.textContent = "";
@@ -128,4 +136,4 @@ tabs.forEach((tab) => {
 });
 
 // Automatically start the camera when on the scan tab
-startScanning();
+startCamera();
