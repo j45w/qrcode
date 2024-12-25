@@ -73,6 +73,7 @@ async function captureAndScanQRCode() {
         return;
     }
 
+    // Set canvas dimensions to match the video feed
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
@@ -81,19 +82,23 @@ async function captureAndScanQRCode() {
 
     try {
         const codeReader = new ZXing.BrowserQRCodeReader();
-        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 
-        const resultData = await codeReader.decodeFromImageData(imageData);
+        // Convert canvas to data URL and scan it
+        const imageUrl = canvas.toDataURL("image/png");
+        const scanResult = await codeReader.decodeFromImageUrl(imageUrl);
 
-        if (resultData) {
-            const scannedData = resultData.text;
+        if (scanResult) {
+            const scannedData = scanResult.text;
             try {
                 const parsedData = JSON.parse(scannedData);
-                validateAndDeleteQRCode(parsedData.uniqueId);
+                await validateAndDeleteQRCode(parsedData.uniqueId);
             } catch (error) {
                 result.textContent = "Invalid QR Code format.";
                 result.style.color = "red";
             }
+        } else {
+            result.textContent = "No QR code detected.";
+            result.style.color = "red";
         }
     } catch (err) {
         console.error("Error scanning QR code:", err);
