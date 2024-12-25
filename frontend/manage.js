@@ -21,8 +21,6 @@ async function validateAndDeleteQRCode(uniqueId) {
 
         const data = await response.json();
 
-        result.classList.remove("hidden"); // Make result visible
-
         if (response.ok) {
             result.textContent = `Success! ${data.message}`;
             result.className = "success fade-in";
@@ -36,13 +34,13 @@ async function validateAndDeleteQRCode(uniqueId) {
     }
 }
 
-// Start scanning with QR Code Reader
+// Start camera and scanning
 function startScanning() {
     codeReader = new ZXing.BrowserQRCodeReader();
     codeReader
-        .decodeFromVideoDevice(null, video, async (result, err) => {
-            if (result) {
-                const scannedData = result.text;
+        .decodeFromVideoDevice(null, video, async (scanResult, err) => {
+            if (scanResult) {
+                const scannedData = scanResult.text;
                 try {
                     const parsedData = JSON.parse(scannedData);
                     validateAndDeleteQRCode(parsedData.uniqueId);
