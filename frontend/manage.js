@@ -43,13 +43,19 @@ async function startCamera() {
     }
 
     try {
+        // Request camera access
         stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: "environment" } },
+            video: {
+                facingMode: { ideal: "environment" }, // Use rear-facing camera
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+            },
         });
+
         video.srcObject = stream;
-        video.setAttribute("playsinline", true);
-        video.play();
-        result.textContent = "Camera started. Click 'Take Screenshot' to scan QR.";
+        video.setAttribute("playsinline", true); // Ensures iOS Safari compatibility
+        await video.play();
+        result.textContent = "Camera started. Use 'Take Screenshot' to capture the QR code.";
         result.style.color = "blue";
     } catch (err) {
         console.error("Error accessing camera:", err);
@@ -80,7 +86,6 @@ function captureQRCode() {
     const context = canvas.getContext("2d");
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Store the captured QR code
     qrCodeCaptured = canvas;
     result.textContent = "Screenshot taken. Click 'Check QR' to validate.";
     result.style.color = "blue";
