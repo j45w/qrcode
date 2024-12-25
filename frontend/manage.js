@@ -1,14 +1,16 @@
 const video = document.getElementById("qr-video");
-const canvas = document.createElement("canvas");
 const result = document.getElementById("result");
 const idForm = document.getElementById("id-form");
 const idInput = document.getElementById("id-input");
+const startScanButton = document.getElementById("start-scan");
+const stopScanButton = document.getElementById("stop-scan");
+const checkQRButton = document.getElementById("check-qr");
 const tabs = document.querySelectorAll(".tab");
 const scanContainer = document.getElementById("scan-container");
 const idContainer = document.getElementById("id-container");
 
 let stream;
-let qrCodeCaptured = null;
+let codeReader;
 
 // Function to validate and delete user by QR code or manual ID
 async function validateAndDeleteQRCode(uniqueId) {
@@ -34,8 +36,8 @@ async function validateAndDeleteQRCode(uniqueId) {
     }
 }
 
-// Function to start the camera
-async function startCamera() {
+// Function to start live QR code scanning
+async function startScanning() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         result.textContent = "Camera not supported on this device.";
         result.style.color = "red";
@@ -46,11 +48,34 @@ async function startCamera() {
         stream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: { ideal: "environment" } },
         });
+
         video.srcObject = stream;
         video.setAttribute("playsinline", true);
         video.play();
-        result.textContent = "Camera started. Use 'Take Screenshot' to capture the QR code.";
+
+        result.textContent = "Scanning... Point the camera at a QR code.";
         result.style.color = "blue";
+
+        codeReader = new ZXing.BrowserQRCodeReader();
+        codeReader.decodeFromVideoDevice(null, video, async (scanResult, error) => {
+            if (scanResult) {
+                const scannedData = scanResult.text;
+                try {
+                    const parsedData = JSON.parse(scannedData);
+                    validateAndDeleteQRCode(parsedData.uniqueId);
+                } catch (err) {
+                    result.textContent = "Invalid QR Code format.";
+                    result.style.color = "red";
+                }
+            }
+            if (error && !(error instanceof ZXing.NotFoundException)) {
+                console.error("QR Code scanning error:", error);
+            }
+        });
+
+        startScanButton.classList.add("hidden");
+        stopScanButton.classList.remove("hidden");
+        checkQRButton.classList.remove("hidden");
     } catch (err) {
         console.error("Error accessing camera:", err);
         result.textContent = "Unable to access camera. Please check your permissions.";
@@ -58,67 +83,30 @@ async function startCamera() {
     }
 }
 
-// Function to stop the camera
-function stopCamera() {
+// Function to stop scanning
+function stopScanning() {
     if (stream) {
         stream.getTracks().forEach((track) => track.stop());
     }
     video.srcObject = null;
-}
 
-// Function to capture the QR code (screenshot)
-function captureQRCode() {
-    if (!video.srcObject) {
-        result.textContent = "Camera is not active. Please start the camera.";
-        result.style.color = "red";
-        return;
+    if (codeReader) {
+        codeReader.reset();
     }
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    const context = canvas.getContext("2d");
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    qrCodeCaptured = canvas;
-    result.textContent = "Screenshot taken. Click 'Check QR' to validate.";
+    result.textContent = "Camera stopped.";
     result.style.color = "blue";
+
+    startScanButton.classList.remove("hidden");
+    stopScanButton.classList.add("hidden");
+    checkQRButton.classList.add("hidden");
 }
 
-// Function to scan and validate the captured QR code
-async function checkQRCode() {
-    if (!qrCodeCaptured) {
-        result.textContent = "No screenshot available. Please take a screenshot first.";
-        result.style.color = "red";
-        return;
-    }
+// Event listener for starting the scan
+startScanButton.addEventListener("click", startScanning);
 
-    const context = qrCodeCaptured.getContext("2d");
-    const imageData = context.getImageData(0, 0, qrCodeCaptured.width, qrCodeCaptured.height);
-
-    try {
-        const codeReader = new ZXing.BrowserQRCodeReader();
-        const luminanceSource = new ZXing.HTMLCanvasElementLuminanceSource(canvas);
-        const binaryBitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminanceSource));
-
-        const resultData = codeReader.decode(binaryBitmap);
-
-        if (resultData) {
-            const scannedData = resultData.text;
-            try {
-                const parsedData = JSON.parse(scannedData);
-                validateAndDeleteQRCode(parsedData.uniqueId);
-            } catch (error) {
-                result.textContent = "Invalid QR Code format.";
-                result.style.color = "red";
-            }
-        }
-    } catch (err) {
-        console.error("Error scanning QR code:", err);
-        result.textContent = "No QR code detected.";
-        result.style.color = "red";
-    }
-}
+// Event listener for stopping the scan
+stopScanButton.addEventListener("click", stopScanning);
 
 // Validate manually entered ID
 idForm.addEventListener("submit", async (e) => {
@@ -130,12 +118,6 @@ idForm.addEventListener("submit", async (e) => {
     }
 });
 
-// Event listener for capturing the QR code
-document.getElementById("capture-scan").addEventListener("click", captureQRCode);
-
-// Event listener for checking the QR code
-document.getElementById("check-qr").addEventListener("click", checkQRCode);
-
 // Handle tab switching
 tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
@@ -145,11 +127,10 @@ tabs.forEach((tab) => {
         if (tab.dataset.tab === "scan") {
             scanContainer.classList.remove("hidden");
             idContainer.classList.add("hidden");
-            startCamera();
         } else {
             scanContainer.classList.add("hidden");
             idContainer.classList.remove("hidden");
-            stopCamera();
+            stopScanning();
         }
 
         result.textContent = "";
