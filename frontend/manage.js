@@ -8,7 +8,7 @@ const scanContainer = document.getElementById("scan-container");
 const idContainer = document.getElementById("id-container");
 
 let scanning = false;
-let codeReader;
+let stream;
 
 // Function to validate and delete user by QR code or manual ID
 async function validateAndDeleteQRCode(uniqueId) {
@@ -23,21 +23,18 @@ async function validateAndDeleteQRCode(uniqueId) {
 
         if (response.ok) {
             result.textContent = `Success! ${data.message}`;
-            result.style.color = "green"; // Display success in green
-            result.className = "success fade-in";
+            result.style.color = "green"; // Success message in green
         } else {
             result.textContent = data.error || "Validation failed";
-            result.style.color = "red"; // Display errors in red
-            result.className = "error fade-in";
+            result.style.color = "red"; // Error message in red
         }
     } catch (err) {
         result.textContent = "Failed to connect to the server.";
         result.style.color = "red";
-        result.className = "error fade-in";
     }
 }
 
-// Start camera and scanning
+// Function to start scanning
 async function startScanning() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         result.textContent = "Camera not supported on this device.";
@@ -46,17 +43,17 @@ async function startScanning() {
     }
 
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({
+        stream = await navigator.mediaDevices.getUserMedia({
             video: {
-                facingMode: "environment", // Rear camera
+                facingMode: { ideal: "environment" }, // Rear camera for mobile
             },
         });
 
         video.srcObject = stream;
-        video.setAttribute("playsinline", true); // For mobile devices
+        video.setAttribute("playsinline", true); // Required for iOS Safari
         video.play();
 
-        codeReader = new ZXing.BrowserQRCodeReader();
+        const codeReader = new ZXing.BrowserQRCodeReader();
         codeReader.decodeFromVideoDevice(null, video, (result, err) => {
             if (result) {
                 const scannedData = result.text;
@@ -82,20 +79,16 @@ async function startScanning() {
     }
 }
 
-// Stop scanning and reset the camera
+// Function to stop scanning
 function stopScanning() {
-    if (codeReader) {
-        codeReader.reset();
-        scanning = false;
-        toggleScanButton.textContent = "Start Scanning";
+    if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
     }
-
-    if (video.srcObject) {
-        video.srcObject.getTracks().forEach((track) => track.stop());
-    }
+    scanning = false;
+    toggleScanButton.textContent = "Start Scanning";
 }
 
-// Toggle scanning on button click
+// Event listener for toggling scan
 toggleScanButton.addEventListener("click", () => {
     if (scanning) {
         stopScanning();
@@ -134,5 +127,5 @@ tabs.forEach((tab) => {
     });
 });
 
-// Automatically start the camera on the Scan tab
+// Automatically start the camera when on the scan tab
 startScanning();
