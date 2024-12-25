@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code and ID Checker</title>
     <link rel="stylesheet" href="manage.css">
-    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qr-scanner/qr-scanner.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -17,7 +17,7 @@
         </div>
 
         <div id="scan-container">
-            <video id="qr-video" autoplay></video>
+            <video id="qr-video"></video>
             <button id="capture-scan">Check QR</button>
         </div>
 
