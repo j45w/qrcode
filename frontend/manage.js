@@ -13,7 +13,7 @@ let codeReader;
 // Function to validate and delete user by QR code or manual ID
 async function validateAndDeleteQRCode(uniqueId) {
     try {
-        const response = await fetch("https://qrcode-n318.onrender.com/api/users/validate-and-delete", {
+        const response = await fetch("https://your-render-url.com/api/users/validate-and-delete", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ uniqueId }),
@@ -21,37 +21,32 @@ async function validateAndDeleteQRCode(uniqueId) {
 
         const data = await response.json();
 
-        const resultDiv = document.getElementById("result");
-        resultDiv.classList.remove("hidden"); // Make result visible
+        result.classList.remove("hidden"); // Make result visible
 
         if (response.ok) {
-            resultDiv.textContent = `Success! ${data.message}`;
-            resultDiv.className = "success fade-in"; // Apply success styling
+            result.textContent = `Success! ${data.message}`;
+            result.className = "success fade-in";
         } else {
-            resultDiv.textContent = data.error || "Validation failed";
-            resultDiv.className = "error fade-in"; // Apply error styling
+            result.textContent = data.error || "Validation failed";
+            result.className = "error fade-in";
         }
     } catch (err) {
-        const resultDiv = document.getElementById("result");
-        resultDiv.classList.remove("hidden");
-        resultDiv.textContent = "Failed to connect to the server.";
-        resultDiv.className = "error fade-in"; // Apply error styling
+        result.textContent = "Failed to connect to the server.";
+        result.className = "error fade-in";
     }
 }
 
-
-// Start camera and scanning
+// Start scanning with QR Code Reader
 function startScanning() {
-    codeReader = new ZXing.BrowserMultiFormatReader();
+    codeReader = new ZXing.BrowserQRCodeReader();
     codeReader
-        .decodeFromVideoDevice(null, video, (result, err) => {
+        .decodeFromVideoDevice(null, video, async (result, err) => {
             if (result) {
                 const scannedData = result.text;
                 try {
                     const parsedData = JSON.parse(scannedData);
                     validateAndDeleteQRCode(parsedData.uniqueId);
                 } catch (error) {
-                    console.error("Invalid QR Code format:", error);
                     result.textContent = "Invalid QR Code format.";
                     result.className = "error fade-in";
                 }
@@ -94,14 +89,14 @@ function initializeCamera() {
     navigator.mediaDevices
         .getUserMedia({
             video: {
-                facingMode: { ideal: "environment" },
+                facingMode: { ideal: "environment" }, // Rear-facing camera for mobile
                 width: { ideal: 1280 },
                 height: { ideal: 720 },
             },
         })
         .then(function (stream) {
             video.srcObject = stream;
-            video.setAttribute("playsinline", true);
+            video.setAttribute("playsinline", true); // Required for iOS Safari
             video.play();
             startScanning();
         })
@@ -145,4 +140,3 @@ tabs.forEach((tab) => {
 
 // Automatically start the camera on page load
 initializeCamera();
-
