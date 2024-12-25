@@ -43,18 +43,12 @@ async function startCamera() {
     }
 
     try {
-        // Request camera access
         stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: { ideal: "environment" }, // Use rear-facing camera
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
-            },
+            video: { facingMode: { ideal: "environment" } },
         });
-
         video.srcObject = stream;
-        video.setAttribute("playsinline", true); // Ensures iOS Safari compatibility
-        await video.play();
+        video.setAttribute("playsinline", true);
+        video.play();
         result.textContent = "Camera started. Use 'Take Screenshot' to capture the QR code.";
         result.style.color = "blue";
     } catch (err) {
@@ -104,7 +98,10 @@ async function checkQRCode() {
 
     try {
         const codeReader = new ZXing.BrowserQRCodeReader();
-        const resultData = await codeReader.decodeFromImageData(imageData);
+        const luminanceSource = new ZXing.HTMLCanvasElementLuminanceSource(canvas);
+        const binaryBitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminanceSource));
+
+        const resultData = codeReader.decode(binaryBitmap);
 
         if (resultData) {
             const scannedData = resultData.text;
