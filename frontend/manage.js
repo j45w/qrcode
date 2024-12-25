@@ -5,7 +5,7 @@ const idInput = document.getElementById("id-input");
 const tabs = document.querySelectorAll(".tab");
 const scanContainer = document.getElementById("scan-container");
 const idContainer = document.getElementById("id-container");
-const captureScanButton = document.getElementById("capture-scan");
+const toggleScanButton = document.getElementById("toggle-scan");
 
 let qrScanner;
 
@@ -22,10 +22,10 @@ async function validateAndDeleteQRCode(uniqueId) {
 
         if (response.ok) {
             result.textContent = `Success! ${data.message}`;
-            result.style.color = "green"; // Success message in green
+            result.style.color = "green";
         } else {
             result.textContent = data.error || "Validation failed";
-            result.style.color = "red"; // Error message in red
+            result.style.color = "red";
         }
     } catch (err) {
         result.textContent = "Failed to connect to the server.";
@@ -43,8 +43,6 @@ function initializeQRScanner() {
             result.textContent = "Invalid QR Code format.";
             result.style.color = "red";
         }
-    }, {
-        returnDetailedScanResult: true,
     });
 }
 
@@ -92,7 +90,7 @@ tabs.forEach((tab) => {
     });
 });
 
-// Handle manual ID checking
+// Validate manually entered ID
 idForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const id = idInput.value.trim();
@@ -102,16 +100,13 @@ idForm.addEventListener("submit", async (e) => {
     }
 });
 
-// Event listener for QR scanning button
-captureScanButton.addEventListener("click", () => {
-    if (qrScanner) {
+// Event listener for toggling scanning
+toggleScanButton.addEventListener("click", () => {
+    if (toggleScanButton.textContent === "Start Scanning") {
         startScanning();
+        toggleScanButton.textContent = "Stop Scanning";
     } else {
-        initializeQRScanner();
-        startScanning();
+        stopScanning();
+        toggleScanButton.textContent = "Start Scanning";
     }
 });
-
-// Automatically start scanning when on the scan tab
-initializeQRScanner();
-startScanning();
