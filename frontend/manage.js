@@ -4,7 +4,6 @@ const idForm = document.getElementById("id-form");
 const idInput = document.getElementById("id-input");
 const startScanButton = document.getElementById("start-scan");
 const stopScanButton = document.getElementById("stop-scan");
-const checkQRButton = document.getElementById("check-qr");
 const tabs = document.querySelectorAll(".tab");
 const scanContainer = document.getElementById("scan-container");
 const idContainer = document.getElementById("id-container");
@@ -75,7 +74,6 @@ async function startScanning() {
 
         startScanButton.classList.add("hidden");
         stopScanButton.classList.remove("hidden");
-        checkQRButton.classList.remove("hidden");
     } catch (err) {
         console.error("Error accessing camera:", err);
         result.textContent = "Unable to access camera. Please check your permissions.";
@@ -99,7 +97,6 @@ function stopScanning() {
 
     startScanButton.classList.remove("hidden");
     stopScanButton.classList.add("hidden");
-    checkQRButton.classList.add("hidden");
 }
 
 // Event listener for starting the scan
