@@ -56,7 +56,7 @@ async function startScanning() {
         result.style.color = "blue";
 
         codeReader = new ZXing.BrowserQRCodeReader();
-        codeReader.decodeFromVideoDevice(null, video, async (scanResult, error) => {
+        codeReader.decodeFromVideoDevice(null, "qr-video", async (scanResult, error) => {
             if (scanResult) {
                 const scannedData = scanResult.text;
                 try {
